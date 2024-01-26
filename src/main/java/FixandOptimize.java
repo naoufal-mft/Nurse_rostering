@@ -1,123 +1,151 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 public class FixAndOptimize {
 
-    static class Solution {
-        // Structure de données pour représenter la solution
-        private List<EmployeeAssignment> employeeAssignments;
+    static Solution fixAndOptimize(Solution initialSolution) {
+        //la meilleure solution est initialisée avec la solution initiale
+        Solution bestSolution = initialSolution;
 
-        public Solution(List<EmployeeAssignment> employeeAssignments) {
-            this.employeeAssignments = new ArrayList<>(employeeAssignments);
+        // Décomposer le problème par jour
+        List<NurseSchedulingProblem> subProblems = decompose(new NurseSchedulingProblem());//NurseSchedulingProblem prendra en input les valeurs qu on a depuis chaque instance
+
+        //mise à jour des variables avec les valeurs de la solution initiale
+        for (Solution.EmployeeAssignment employeeAssignment : initialSolution.getEmployeeAssignments()) {
+            // Récupérez l'identifiant de l'employé
+            char employeeId_fixed = employeeAssignment.getEmployeeId();
+
+            // Parcourez les affectations de l'employé
+            for (Solution.Assign assign : employeeAssignment.getAssignments()) {
+                // Récupérez le jour et le shiftId
+                int day_fixed = assign.getDay();
+                char shiftId_fixed = assign.getShiftId();
+            }
         }
+        //pour chaque sous-problème correspondant à un jour
+        for (NurseSchedulingProblem subProblem : subProblems) {
+            //réinitialisation des variables de solution pour le sous-problème
+            for (Solution.EmployeeAssignment employeeAssignment : bestSolution.getEmployeeAssignments()) {
+                // Parcourez les affectations de l'employé
+                for (Solution.Assign assign : employeeAssignment.getAssignments()) {
+                    // Réinitialisez les variables à optimiser (shiftId)
+                    assign.setShiftId(' ');
+                }
+            }
+            //résolution du sous-problème
+            Solution currentSolution = solve(subProblem);
 
-        public Solution clone() {
-            return new Solution(new ArrayList<>(employeeAssignments));
+            // Vérifiez si la solution actuelle est meilleure que la meilleure solution actuelle
+            if (currentSolution.isFeasible() ) {
+                //si le coût de la nouvelle solution est meilleur
+                if (currentSolution.getCost() < bestSolution.getCost()) {
+                    // Mettez à jour la meilleure solution
+                    bestSolution = currentSolution;
+                    //mise à jour des variables avec les nouvelles valeurs
+                    for (Solution.EmployeeAssignment employeeAssignment : currentSolution.getEmployeeAssignments()) {
+                        // Récupérez l'identifiant de l'employé
+                        char employeeId_fixed = employeeAssignment.getEmployeeId();
+
+                        // Parcourez les affectations de l'employé
+                        for (Solution.Assign assign : employeeAssignment.getAssignments()) {
+                            // Récupérez le jour et le shiftId
+                            int day_fixed = assign.getDay();
+                            char shiftId_fixed = assign.getShiftId();
+                        }
+                    }
+
+                } else {
+                    //Restore Set of x variables that are to be optimized in future iterations
+
+                }
+            }
         }
-
-        public int cost() {
-            // Implémentez la logique pour calculer le coût de la solution
-            // Vous devrez ajuster cette logique en fonction de la structure spécifique de votre problème
-            return 0;
-        }
-
-        // Méthodes d'accès...
+        //la meilleure solution est renvoyée
+        return bestSolution;
     }
 
-    static class EmployeeAssignment {
-        // Structure de données pour représenter l'affectation d'un employé pour un jour
-        private String employeeID;
-        private String shift;
-        private int day;
+    public List<NurseSchedulingProblem> decompose(NurseSchedulingProblem globalProblem) {
+        List<NurseSchedulingProblem> subProblems = new ArrayList<>();
 
-        public EmployeeAssignment(String employeeID, String shift, int day) {
-            this.employeeID = employeeID;
-            this.shift = shift;
-            this.day = day;
-        }
+        // Pour chaque jour dans dayIndexes
+        for (int day : globalProblem.getDayIndexes()) {
+            // Copier le problème global
+            NurseSchedulingProblem subProblem = new NurseSchedulingProblem(
+                    new HashSet<>(globalProblem.getShifts()),
+                    new HashSet<>(globalProblem.getEmployees()),
+                    globalProblem.getHorizon()
+            );
 
-        // Méthodes d'accès...
-    }
+            // Appliquer la restriction sur le jour particulier
+            subProblem.setDayIndexes(new int[]{day});
 
-    static class SubProblem {
-        // Structure de données pour représenter un sous-problème
-        private List<EmployeeAssignment> employeeAssignments;
-
-        public SubProblem(List<EmployeeAssignment> employeeAssignments) {
-            this.employeeAssignments = new ArrayList<>(employeeAssignments);
-        }
-
-        // Méthodes d'accès...
-    }
-
-    static List<SubProblem> decomposeProblem(Solution solution) {
-        List<SubProblem> subProblems = new ArrayList<>();
-
-        // Obtenez la liste des jours dans la solution
-        List<Integer> daysInSolution = getDistinctDays(solution);
-
-        // Pour chaque jour, créez un sous-problème
-        for (int day : daysInSolution) {
-            List<EmployeeAssignment> assignmentsForDay = getAssignmentsForDay(solution, day);
-            SubProblem subProblem = new SubProblem(assignmentsForDay);
+            // Ajouter le sous-problème à la liste
             subProblems.add(subProblem);
         }
 
         return subProblems;
     }
+    public static Solution solve(NurseSchedulingProblem problem) {
+        // Initialiser la solution avec une méthode de construction de planning faisable
+        Solution solution = buildFeasibleSolution(problem);
 
-    static void updateFixedVariables(Solution solution) {
-        // Implémentez la logique pour mettre à jour les variables fixes
-        // (Fixer les variables selon les affectations de la solution)
+        // Vérifier les contraintes après la construction pour la faisabilité de la solution
+        boolean isFeasible = verifyIsFeasible(problem, solution.getEmployeeAssignments());
+
+        // Calculer le coût de la solution
+        int cost = calculateSolutionCost(problem, solution.getEmployeeAssignments());
+
+        // Créer une nouvelle instance de Solution avec les paramètres mis à jour
+        solution = new Solution(solution.getEmployeeAssignments(), isFeasible, cost);
+
+
+        return solution;
     }
 
-    static void clearRelaxedVariables(SubProblem subProblem) {
-        // Implémentez la logique pour effacer les variables relaxées dans le sous-problème
+    private static boolean verifyIsFeasible(NurseSchedulingProblem problem, List<Solution.EmployeeAssignment> solutionAssignments) {
+        // Vérifier toutes les contraintes pour déterminer la faisabilité de la solution
+        try {
+            verify.checkAllConstraints(problem, solutionAssignments);
+            return true;  // Aucune exception n'a été levée, la solution est faisable
+        } catch (Exception e) {
+            return false;  // Une exception a été levée, la solution n'est pas faisable
+        }
     }
 
-    static Solution solveSubProblem(SubProblem subProblem) {
-        // Implémentez la logique pour résoudre le sous-problème
-        // (Utilisez un solveur approprié pour résoudre le sous-problème)
-        return null;
+    private static int calculateSolutionCost(NurseSchedulingProblem problem, List<Solution.EmployeeAssignment> solutionAssignments) {
+        //  logique pour calculer le coût de la solution
+        return 0;  // Remplacer par votre logique réelle
     }
 
-    static void restoreRelaxedVariables(SubProblem subProblem, Solution mainSolution) {
-        // Implémentez la logique pour restaurer les variables relaxées dans la solution principale
-    }
+    public static Solution buildFeasibleSolution(NurseSchedulingProblem problem) {
+        List<Solution.EmployeeAssignment> assignments = new ArrayList<>();
 
-    static void updateOptimizedVariables(Solution solution, SubProblem subProblem) {
-        // Implémentez la logique pour mettre à jour les variables optimisées
-        // (Mettre à jour les valeurs des variables dans la solution principale avec celles du sous-problème)
-    }
+        Random random = new Random();
 
-    static Solution fixAndOptimize(Solution initialSolution) {
-        Solution bestSolution = initialSolution.clone();
+        for (Employee employee : problem.getEmployees()) {
+            List<Solution.Assign> employeeAssignments = new ArrayList<>();
 
-        List<SubProblem> subProblems = decomposeProblem(initialSolution);
+            for (int day = 0; day < problem.getHorizon(); day++) {
+                for (Shift shift : problem.getShifts()) {
+                    // Générer une affectation aléatoire
+                    boolean isAssigned = random.nextBoolean();
 
-        updateFixedVariables(initialSolution);
-
-        for (SubProblem subProblem : subProblems) {
-            clearRelaxedVariables(subProblem);
-
-            Solution currentSolution = solveSubProblem(subProblem);
-
-            if (isFeasible(currentSolution) && currentSolution.cost() < bestSolution.cost()) {
-                bestSolution = currentSolution.clone();
-                updateOptimizedVariables(bestSolution, subProblem);
-            } else {
-                restoreRelaxedVariables(subProblem, initialSolution);
+                    // Ajouter l'assignation à la liste d'assignations de l'employé
+                    employeeAssignments.add(new Solution.Assign(day, (char) shift.getId()));
+                }
             }
+
+            // Ajouter l'EmployeeAssignment à la liste d'assignations globale
+            assignments.add(new Solution.EmployeeAssignment((char) employee.getEmployeeID(), employeeAssignments));
         }
 
-        return bestSolution;
+        // Retourner la solution complète avec les valeurs par défaut pour isFeasible et cost
+        Solution solution = new Solution(assignments);
+
+        return solution;
     }
 
-    static boolean isFeasible(Solution solution) {
-        // Implémentez la logique pour vérifier si la solution est réalisable
-        return true;
-    }
 
-    // Méthodes utilitaires pour obtenir les jours distincts et les affectations pour un jour spécifique
-    // ... (Implémentez ces méthodes selon la structure spécifique de vos données)
 }

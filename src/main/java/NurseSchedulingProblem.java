@@ -23,6 +23,62 @@ public class NurseSchedulingProblem{
 
 
 
+    public int getHorizon() {
+        return horizon;
+    }
+
+    public Set<Shift> getShifts() {
+        return shifts;
+    }
+
+    public Set<Employee> getEmployees() {
+        return employees;
+    }
+
+    public Set<Integer> getWeekends() {
+        return Weekends;
+    }
+
+    public int[] getDayIndexes() {
+        return DayIndexes;
+    }
+    public void setDayIndexes(int[] dayIndexes) {
+        this.DayIndexes = dayIndexes;
+    }
+
+    public boolean[][][] getAssignment() {
+        return assignment;
+    }
+
+    public boolean[][] getWorkingWeekends() {
+        return workingWeekends;
+    }
+
+    public int[][] getUnderstaffing() {
+        return understaffing;
+    }
+
+    public int[][] getOverstaffing() {
+        return overstaffing;
+    }
+
+    public int[][][] getPenaltyNotPreferred() {
+        return penaltyNotPreferred;
+    }
+
+    public int[][][] getPenaltyPreferred() {
+        return penaltyPreferred;
+    }
+
+    public int[][] getPenaltyUnderstaffing() {
+        return penaltyUnderstaffing;
+    }
+
+    public int[][] getPenaltyOverstaffing() {
+        return penaltyOverstaffing;
+    }
+
+
     public NurseSchedulingProblem(Set<Shift> shifts, Set<Employee> employees, int horizon) {
         this.horizon = horizon;
         this.shifts = shifts;
@@ -123,7 +179,7 @@ public class NurseSchedulingProblem{
             int totalWorkTime = 0;
             for (int j = 0; j < horizon; j++) {
                 for (Shift shift : shifts) {
-                    int p = shift.getId();  // Supposant que p est l'indice ordinal du type de poste
+                    int p = shift.getId();
                     int dp = shift.getLength();  // Supposant que getDuree() retourne la durée du type de poste en minutes
                     // Vérifie si l'employé est affecté à ce type de poste ce jour-là
                     if (assignment[employee.getEmployeeID()][j][p]) {
@@ -164,15 +220,22 @@ public class NurseSchedulingProblem{
             }
         }
     }
+    // Méthode pour vérifier si un employé travaille un jour donné
     private boolean isEmployeeWorking(Employee employee, int day) {
+        // Parcourir tous les types de postes (shifts)
         for (Shift shift : shifts) {
+            // Récupérer l'identifiant du poste
             int p = shift.getId();
+            // Vérifier si l'employé est affecté à ce poste le jour donné
             if (assignment[employee.getEmployeeID()][day][p]) {
+                // L'employé travaille, retourner true
                 return true;
             }
         }
+        // Aucun poste n'a été trouvé pour cet employé ce jour-là
         return false;
     }
+
 
     public void contrainte6() {
         for (Employee employee : employees) {
@@ -182,7 +245,7 @@ public class NurseSchedulingProblem{
                     int sumBeforeShift = 0;
                     int sumAfterShift = 0;
                     for (Shift shift : shifts) {
-                        int p = shift.getId();  // Supposant que p est l'indice ordinal du type de poste
+                        int p = shift.getId();
                         // Somme des postes avant le repos
                         for (int j = d + 1; j <= d + s; j++) {
                             sumBeforeShift += assignment[employee.getEmployeeID()][j][p] ? 1 : 0;
@@ -298,7 +361,7 @@ public class NurseSchedulingProblem{
         for (int j = 0; j < DayIndexes.length; j++) {
             for (Shift shift : shifts) {
                 int p = shift.getId();
-                int personnelRequis = shift.getPersonnelRequis();  // Utilisez la méthode de la classe Post pour obtenir le nombre de personnel requis
+                int personnelRequis = shift.getPersonnelRequis();  // Utilisez la méthode de la classe Shift pour obtenir le nombre de personnel requis
 
                 int totalEmployesAffectes = 0;
 
@@ -320,6 +383,59 @@ public class NurseSchedulingProblem{
                 }
             }
         }
+    }
+    public int ObjectiveFunction() {
+        int objectiveValue = 0;
+
+        // Partie1
+        for (Employee employee : employees) {
+            for (int day : DayIndexes) {
+                for (Shift shift : shifts) {
+                    int p = shift.getId();
+                    int qejp = penaltyNotPreferred[employee.getEmployeeID()][day][p];
+                    boolean xejp = assignment[employee.getEmployeeID()][day][p];
+
+                    objectiveValue += qejp * (1 - (xejp ? 1 : 0));
+                }
+            }
+        }
+
+        // Partie2
+        for (Employee employee : employees) {
+            for (int day : DayIndexes) {
+                for (Shift shift : shifts) {
+                    int p = shift.getId();
+                    int pejpxejp = penaltyPreferred[employee.getEmployeeID()][day][p];
+                    boolean xejp = assignment[employee.getEmployeeID()][day][p];
+
+                    objectiveValue += pejpxejp * (xejp ? 1 : 0);
+                }
+            }
+        }
+
+        // Partie3
+        for (int day : DayIndexes) {
+            for (Shift shift : shifts) {
+                int p = shift.getId();
+                int v_min_jp = penaltyUnderstaffing[day][p];
+                int y_jp = understaffing[day][p];
+
+                objectiveValue += v_min_jp * y_jp;
+            }
+        }
+
+        // Partie4
+        for (int day : DayIndexes) {
+            for (Shift shift : shifts) {
+                int p = shift.getId();
+                int v_max_jp = penaltyOverstaffing[day][p];
+                int y_jp = overstaffing[day][p];
+
+                objectiveValue += v_max_jp * y_jp;
+            }
+        }
+
+        return objectiveValue;
     }
 }
 

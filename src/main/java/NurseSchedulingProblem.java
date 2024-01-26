@@ -1,11 +1,13 @@
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 public class NurseSchedulingProblem{
-    private Set<Post> posts;
-    private Set<Employee> employees;
-    private int nbDays;
-    private int nbWeekends;
+    private int horizon; //le nombre de jours de l’horizon de planification
+    private Set<Shift> shifts;//l’ensemble des types de postes
+    private Set<Employee> employees; //l’ensemble des employés
+    private Set<Integer> Weekends; // l’ensemble des week-ends concernés par la planification
+    private int[] DayIndexes;//l’ensemble des jours concernés par la planification (J = {1, . . . , h})
+
 
     // Variables de décision
     private boolean[][][] assignment;  // xejp, égale à true si l'employé est affecté au type de poste p le jour j, false sinon
@@ -14,56 +16,63 @@ public class NurseSchedulingProblem{
     private int[][] overstaffing;  // yjp, égale à l'excédent de personnel affecté au type de poste p le jour j (un entier)
 
     // Pénalités
-    private int[][] penaltyNotPreferred;  // qejp, la pénalité si l'employé n'est pas affecté au type de poste p le jour j alors qu'il le souhaitait
-    private int[][] penaltyPreferred;  // pejp, la pénalité si l'employé est affecté au type de poste p le jour j alors qu'il ne le souhaitait pas
+    private int[][][] penaltyNotPreferred;  // qejp, la pénalité si l'employé n'est pas affecté au type de poste p le jour j alors qu'il le souhaitait
+    private int[][][] penaltyPreferred;  // pejp, la pénalité si l'employé est affecté au type de poste p le jour j alors qu'il ne le souhaitait pas
     private int[][] penaltyUnderstaffing;  // vminjp, la pénalité si le nombre de personnels affectés au type de poste p le jour j est inférieur à ujp
     private int[][] penaltyOverstaffing;  // vmaxjp, la pénalité si le nombre de personnels affectés au type de poste p le jour j est supérieur à ujp
 
 
 
-    public NurseSchedulingProblem(Set<Post> typesPostes, Set<Employee> employees, int nbDays, int nbWeekends) {
-        this.posts = typesPostes;
+    public NurseSchedulingProblem(Set<Shift> shifts, Set<Employee> employees, int horizon) {
+        this.horizon = horizon;
+        this.shifts = shifts;
         this.employees = employees;
-        this.nbDays = nbDays;
-        this.nbWeekends = nbWeekends;
+        this.DayIndexes = new int[horizon];
+        for (int i = 0; i < horizon; i++) {
+            DayIndexes[i] = i;
+        }
+        this.Weekends = new HashSet<>();
+        for (int w = 1; w <= 7; w++) {
+            Weekends.add(w);
+        }
 
     }
 
     public void initializeModel() {
         // Initialisation des variables de décision
-        assignment = new boolean[employees.size()][nbDays][posts.size()];
-        workingWeekends = new boolean[employees.size()][nbWeekends];
-        understaffing = new int[nbDays][posts.size()];
-        overstaffing = new int[nbDays][posts.size()];
+        assignment = new boolean[employees.size()][horizon][shifts.size()];
+        workingWeekends = new boolean[employees.size()][Weekends.size()];
+        understaffing = new int[horizon][shifts.size()];
+        overstaffing = new int[horizon][shifts.size()];
 
         // Initialisation des pénalités
-        penaltyNotPreferred = new int[employees.size()][nbDays];
-        penaltyPreferred = new int[employees.size()][nbDays];
-        penaltyUnderstaffing = new int[nbDays][posts.size()];
-        penaltyOverstaffing = new int[nbDays][posts.size()];
+        penaltyNotPreferred = new int[employees.size()][horizon][shifts.size()];
+        penaltyPreferred = new int[employees.size()][horizon][shifts.size()];
+        penaltyUnderstaffing = new int[horizon][shifts.size()];
+        penaltyOverstaffing = new int[horizon][shifts.size()];
 
     }
 
     public void contrainte1() {
         for (Employee employee : employees) {
-            for (int j = 0; j < nbDays; j++) {
-                for (int p = 0; p < posts.size(); p++) {
+            for (int j = 1; j < DayIndexes.length; j++) {
+                for (int p = 0; p < shifts.size(); p++) {
                     // Contrainte d'affectation à la variable de décision assignment
-                    if (assignment[employee.getId()][j][p]) {
-                        System.out.println("L'employé " + employee.getId() + " est affecté au type de poste " + p + " le jour " + j);
+                    if (assignment[employee.getEmployeeID()][j][p]) {
+                        System.out.println("L'employé " + employee.getEmployeeID() + " est affecté au type de poste " + p + " le jour " + j);
                     } else {
-                        System.out.println("L'employé " + employee.getId() + " n'est pas affecté au type de poste " + p + " le jour " + j);
+                        System.out.println("L'employé " + employee.getEmployeeID() + " n'est pas affecté au type de poste " + p + " le jour " + j);
                     }
                 }
                 // La somme des assignations pour chaque employé et chaque jour doit être inférieure ou égale à 1
                 int sum = 0;
-                for (int p = 0; p < posts.size(); p++) {
-                    if (assignment[employee.getId()][j][p]) {
+                for (int p = 0; p < shifts.size(); p++) {
+                    if (assignment[employee.getEmployeeID()][j][p]) {
                         sum++;
                     }
                 }
                 if (sum > 1) {
-                    System.out.println("La contrainte d'une seule affectation n'est pas respectée pour l'employé " + employee.getId() + " le jour " + j);
+                    System.out.println("La contrainte d'une seule affectation n'est pas respectée pour l'employé " + employee.getEmployeeID() + " le jour " + j);
                 }
             }
         }
@@ -71,15 +80,15 @@ public class NurseSchedulingProblem{
 
     public void contrainte2() {
         for (Employee employee : employees) {
-            for (int j = 0; j < nbDays - 1; j++) {
-                for (Post post : posts) {
-                    for (TypePoste incompatibleType : post.getTypesInterdits()) {
+            for (int j = 1; j < horizon - 1; j++) {
+                for (Shift shift : shifts) {
+                    for (Shift incompatibleType : shift.getTypesInterdits()) {
                         // Contrainte d'incompatibilité
-                        if (assignment[employee.getId()][j][post.getId()] || assignment[employee.getId()][j + 1][incompatibleType.ordinal()]) {
+                        if (assignment[employee.getEmployeeID()][j][shift.getId()] || assignment[employee.getEmployeeID()][j + 1][incompatibleType.getId()]) {
                             //si l'incompatibilité est violée
-                            System.out.println("Incompatibilité entre les types de postes " + post.getId() +
-                                    " et " + incompatibleType.getLibelle() +
-                                    " pour l'employé " + employee.getId() +
+                            System.out.println("Incompatibilité entre les types de postes " + shift.getId() +
+                                    " et " + incompatibleType.getId() +
+                                    " pour l'employé " + employee.getEmployeeID() +
                                     " les jours " + j + " et " + (j + 1));
                         }
                     }
@@ -90,19 +99,19 @@ public class NurseSchedulingProblem{
 
     public void contrainte3() {
         for (Employee employee : employees) {
-            for (Post post : posts) {
-                int p = post.getId();  // Supposant que p est l'indice ordinal du type de poste
+            for (Shift shift : shifts) {
+                int p = shift.getId();  // Supposant que p est l'indice ordinal du type de poste
                 int countDaysWorked = 0;
-                for (int j = 0; j < nbDays; j++) {
-                    if (assignment[employee.getId()][j][p]) {
+                for (int j = 0; j < horizon; j++) {
+                    if (assignment[employee.getEmployeeID()][j][p]) {
                         countDaysWorked++;
                     }
                 }
-                if (countDaysWorked > employee.getNombreMaxJoursTravaillesSurPoste()) {
+                if (countDaysWorked > employee.getMaxShifts()) {
                     // La contrainte est violée, vous pouvez prendre une action appropriée
-                    System.out.println("Contrainte violée : L'employé " + employee.getId() +
-                            " a travaillé plus de " + employee.getNombreMaxJoursTravaillesSurPoste() +
-                            " jours sur le poste de type " + post.getId());
+                    System.out.println("Contrainte violée : L'employé " + employee.getEmployeeID() +
+                            " a travaillé plus de " + employee.getMaxShifts() +
+                            " jours sur le poste de type " + shift.getId());
                 }
             }
         }
@@ -110,14 +119,14 @@ public class NurseSchedulingProblem{
     public void contrainte4() {
         for (Employee employee : employees) {
             int tmin = employee.getTempsTotalMinimum();
-            int tmax = employee.getTempsTotalMaximum();
+            int tmax = employee.getMaxTotalMinutes();
             int totalWorkTime = 0;
-            for (int j = 0; j < nbDays; j++) {
-                for (Post post : posts) {
-                    int p = post.getId();  // Supposant que p est l'indice ordinal du type de poste
-                    int dp = post.getDuree();  // Supposant que getDuree() retourne la durée du type de poste en minutes
+            for (int j = 0; j < horizon; j++) {
+                for (Shift shift : shifts) {
+                    int p = shift.getId();  // Supposant que p est l'indice ordinal du type de poste
+                    int dp = shift.getLength();  // Supposant que getDuree() retourne la durée du type de poste en minutes
                     // Vérifie si l'employé est affecté à ce type de poste ce jour-là
-                    if (assignment[employee.getId()][j][p]) {
+                    if (assignment[employee.getEmployeeID()][j][p]) {
                         totalWorkTime += dp;
                     }
                 }
@@ -125,7 +134,7 @@ public class NurseSchedulingProblem{
             // Applique la contrainte
             if (totalWorkTime < tmin || totalWorkTime > tmax) {
                 // Contrainte violée, prenez une action appropriée
-                System.out.println("Contrainte violée : L'employé " + employee.getId() +
+                System.out.println("Contrainte violée : L'employé " + employee.getEmployeeID() +
                         " a un temps de travail total de " + totalWorkTime +
                         " minutes en dehors de la plage [" + tmin + ", " + tmax + "]");
             }
@@ -135,9 +144,9 @@ public class NurseSchedulingProblem{
 
     public void contrainte5() {
         for (Employee employee : employees) {
-            int cmaxe = employee.getNombreMaxPostesConsecutifs();
+            int cmaxe = employee.getMaxConsecutiveShifts();
 
-            for (int d = 0; d < nbDays - cmaxe + 1; d++) {
+            for (int d = 0; d < horizon - cmaxe + 1; d++) {
                 int consecutiveWorkDays = 0;
 
                 for (int j = d; j < d + cmaxe; j++) {
@@ -149,16 +158,16 @@ public class NurseSchedulingProblem{
                 // Applique la contrainte
                 if (consecutiveWorkDays > cmaxe) {
                     // Contrainte violée, prenez une action appropriée
-                    System.out.println("Contrainte violée : L'employé " + employee.getId() +
+                    System.out.println("Contrainte violée : L'employé " + employee.getEmployeeID() +
                             " travaille plus de " + cmaxe + " jours consécutifs à partir du jour " + (d + 1));
                 }
             }
         }
     }
     private boolean isEmployeeWorking(Employee employee, int day) {
-        for (Post post : posts) {
-            int p = post.getId();
-            if (assignment[employee.getId()][day][p]) {
+        for (Shift shift : shifts) {
+            int p = shift.getId();
+            if (assignment[employee.getEmployeeID()][day][p]) {
                 return true;
             }
         }
@@ -167,26 +176,26 @@ public class NurseSchedulingProblem{
 
     public void contrainte6() {
         for (Employee employee : employees) {
-            int cmin = employee.getNombreMinJoursReposConsecutifs();
+            int cmin = employee.getMinConsecutiveDaysOff();
             for (int s = 1; s <= cmin - 1; s++) {
-                for (int d = 0; d <= nbDays - (s + 1); d++) {
+                for (int d = 0; d <= horizon - (s + 1); d++) {
                     int sumBeforeShift = 0;
                     int sumAfterShift = 0;
-                    for (Post post : posts) {
-                        int p = post.getId();  // Supposant que p est l'indice ordinal du type de poste
+                    for (Shift shift : shifts) {
+                        int p = shift.getId();  // Supposant que p est l'indice ordinal du type de poste
                         // Somme des postes avant le repos
                         for (int j = d + 1; j <= d + s; j++) {
-                            sumBeforeShift += assignment[employee.getId()][j][p] ? 1 : 0;
+                            sumBeforeShift += assignment[employee.getEmployeeID()][j][p] ? 1 : 0;
                         }
                         // Somme des postes après le repos
                         for (int j = d + s + 1; j <= d + s + 1; j++) {
-                            sumAfterShift += assignment[employee.getId()][j][p] ? 1 : 0;
+                            sumAfterShift += assignment[employee.getEmployeeID()][j][p] ? 1 : 0;
                         }
                     }
                     // Applique la contrainte
                     if (sumBeforeShift + (s - sumAfterShift) + sumBeforeShift > 0) {
                         // Contrainte violée, prenez une action appropriée
-                        System.out.println("Contrainte violée : L'employé " + employee.getId() +
+                        System.out.println("Contrainte violée : L'employé " + employee.getEmployeeID() +
                                 " ne respecte pas la contrainte de repos entre les shifts pour s = " + s +
                                 " à partir du jour " + (d + 1));
                     }
@@ -196,31 +205,31 @@ public class NurseSchedulingProblem{
     }
     public void contrainte7() {
         for (Employee employee : employees) {
-            int rmin = employee.getNombreMinJoursReposConsecutifs();
+            int rmin = employee.getMinConsecutiveDaysOff();
             for (int s = 1; s <= rmin - 1; s++) {
-                for (int d = 0; d <= nbDays - (s + 1); d++) {
+                for (int d = 0; d <= horizon - (s + 1); d++) {
                     int sumWorkBeforeRest = 0;
                     int sumRest = 0;
                     int sumWorkAfterRest = 0;
-                    for (Post post : posts) {
-                        int p = post.getId();
+                    for (Shift shift : shifts) {
+                        int p = shift.getId();
                         // Somme des postes avant le repos
                         for (int j = d + 1; j <= d + s; j++) {
-                            sumWorkBeforeRest += assignment[employee.getId()][j][p] ? 1 : 0;
+                            sumWorkBeforeRest += assignment[employee.getEmployeeID()][j][p] ? 1 : 0;
                         }
                         // Somme des postes pendant le repos
                         for (int j = d + s + 1; j <= d + s + 1; j++) {
-                            sumRest += assignment[employee.getId()][j][p] ? 1 : 0;
+                            sumRest += assignment[employee.getEmployeeID()][j][p] ? 1 : 0;
 
                             // Somme des postes après le repos
                             for (int i = d + s + 2; i <= d + s + rmin; i++) {
-                                sumWorkAfterRest += assignment[employee.getId()][i][p] ? 1 : 0;
+                                sumWorkAfterRest += assignment[employee.getEmployeeID()][i][p] ? 1 : 0;
                             }
                         }
                         // Applique la contrainte
                         if ((1 - sumWorkBeforeRest) + sumRest + (1 - sumWorkAfterRest) > 0) {
                             // Contrainte violée, prenez une action appropriée
-                            System.out.println("Contrainte violée : L'employé " + employee.getId() +
+                            System.out.println("Contrainte violée : L'employé " + employee.getEmployeeID() +
                                     " ne respecte pas la contrainte de repos minimal pour s = " + s +
                                     " à partir du jour " + (d + 1));
                         }
@@ -230,68 +239,71 @@ public class NurseSchedulingProblem{
         }
     }
     public void contrainte8() {
-            for (Employee employee : employees) {
-                int wmaxe = employee.getNombreMaxWeekendsTravailles();
-                int totalWeekendsWorked = 0;
+        for (Employee employee : employees) {
+            int wmaxe = employee.getMaxWeekends();
+            int totalWeekendsWorked = 0;
 
-                for (int w = 1; w <= nbWeekends; w++) {
-                    int weekendWorked = 0;
-                    for (Jour jour : Jour.values()) {
-                        int dayIndex = Arrays.asList(Jour.values()).indexOf(jour);
-                        for (Post post : posts) {
-                            int p = post.getId();
-                            // Vérifie si l'employé travaille au moins un des deux jours du week-end
-                            if (assignment[employee.getId()][(7 * w - 1) + dayIndex][p] ||
-                                    assignment[employee.getId()][(7 * w) + dayIndex][p]) {
-                                weekendWorked++;
-                            }
+            for (int w = 1; w <= Weekends.size(); w++) {
+                int weekendWorked = 0;
+                for (int dayIndex : DayIndexes) {
+                    for (Shift shift : shifts) {
+                        int p = shift.getId();
+                        // Vérifie si l'employé travaille au moins un des deux jours du week-end
+                        if (assignment[employee.getEmployeeID()][(7 * w - 1) + dayIndex][p] ||
+                                assignment[employee.getEmployeeID()][(7 * w) + dayIndex][p]) {
+                            weekendWorked++;
                         }
                     }
-                    // Incrémente le nombre total de week-ends travaillés
-                    totalWeekendsWorked += weekendWorked;
-
-                    // Applique la contrainte
-                    if (weekendWorked > 0 && weekendWorked <= 2) {
-                        // Contrainte satisfaite
-                    } else {
-                        // Contrainte violée, prenez une action appropriée
-                        System.out.println("Contrainte violée : L'employé " + employee.getId() +
-                                " a travaillé " + weekendWorked + " jours pendant le week-end " + w);
-                    }
                 }
+                // Incrémente le nombre total de week-ends travaillés
+                totalWeekendsWorked += weekendWorked;
+
                 // Applique la contrainte
-                if (totalWeekendsWorked <= wmaxe) {
+                if (weekendWorked > 0 && weekendWorked <= 2) {
                     // Contrainte satisfaite
                 } else {
                     // Contrainte violée, prenez une action appropriée
-                    System.out.println("Contrainte violée : L'employé " + employee.getId() +
-                            " a travaillé " + totalWeekendsWorked + " week-ends, dépassant la limite de " + wmaxe);
+                    System.out.println("Contrainte violée : L'employé " + employee.getEmployeeID() +
+                            " a travaillé " + weekendWorked + " jours pendant le week-end " + w);
                 }
             }
+            // Applique la contrainte
+            if (totalWeekendsWorked <= wmaxe) {
+                // Contrainte satisfaite
+            } else {
+                // Contrainte violée, prenez une action appropriée
+                System.out.println("Contrainte violée : L'employé " + employee.getEmployeeID() +
+                        " a travaillé " + totalWeekendsWorked + " week-ends, dépassant la limite de " + wmaxe);
+            }
+        }
     }
+
     public void contrainte9() {
         for (Employee employee : employees) {
-            Set<Jour> joursDeRepos = employee.getJoursDeRepos();
-            for (Jour jour : joursDeRepos) {
-                int dayIndex = Arrays.asList(Jour.values()).indexOf(jour);
-                for (Post post : posts) {
-                    int p = post.getId();  // Supposant que p est l'indice ordinal du type de poste
+            int[] joursDeReposIndexes = employee.getJoursDeReposIndexes();
+
+            for (int dayIndex : joursDeReposIndexes) {
+                for (Shift shift : shifts) {
+                    int p = shift.getId();
                     // Contrainte : l'employé ne travaille pas certains jours
-                    assignment[employee.getId()][dayIndex][p] = false;
+                    assignment[employee.getEmployeeID()][dayIndex][p] = false;
                 }
             }
         }
     }
+
+
+
     public void contrainte10() {
-        for (int j = 0; j < nbDays; j++) {
-            for (Post post : posts) {
-                int p = post.getId();
-                int personnelRequis = post.getPersonnelRequis();  // Utilisez la méthode de la classe Post pour obtenir le nombre de personnel requis
+        for (int j = 0; j < DayIndexes.length; j++) {
+            for (Shift shift : shifts) {
+                int p = shift.getId();
+                int personnelRequis = shift.getPersonnelRequis();  // Utilisez la méthode de la classe Post pour obtenir le nombre de personnel requis
 
                 int totalEmployesAffectes = 0;
 
                 for (Employee employee : employees) {
-                    if (assignment[employee.getId()][j][p]) {
+                    if (assignment[employee.getEmployeeID()][j][p]) {
                         totalEmployesAffectes++;
                     }
                 }
@@ -302,7 +314,7 @@ public class NurseSchedulingProblem{
                 // Contrainte : somme(xejp) - yjp + yjp = ujp
                 if (totalEmployesAffectes - manquePersonnel + excedentPersonnel != personnelRequis) {
                     // La contrainte est violée, prenez une action appropriée
-                    System.out.println("Contrainte violée pour le jour " + j + ", le type de poste " + post + ": " +
+                    System.out.println("Contrainte violée pour le jour " + j + ", le type de poste " + shift + ": " +
                             "Affectations=" + totalEmployesAffectes + ", Manque=" + manquePersonnel +
                             ", Excédent=" + excedentPersonnel + ", Personnel requis=" + personnelRequis);
                 }

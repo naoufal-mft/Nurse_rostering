@@ -5,26 +5,26 @@ import java.util.Set;
  * et le nombre de personnels requis pour ce type de poste le jour j.
  */
 
-public class Post {
-    private int id;
-    private int duree;
-    private Set<TypePoste> typesInterdits;
+public class Shift {
+    private char id;
+    private int Length; //La durée (en minutes)
+    private Set<Shift> typesInterdits;
     private int personnelRequis;
 
-    public Post(int id, int duree, Set<TypePoste> typesInterdits, int personnelRequis) {
+    public Shift(char id, int Length, Set<Shift> typesInterdits, int personnelRequis) {
         this.id = id;
-        this.duree = duree;
+        this.Length = Length;
         this.typesInterdits = typesInterdits;
         this.personnelRequis = personnelRequis;
     }
     public int getId() {
         return id;
     }
-    public int getDuree() {
-        return duree;
+    public int getLength() {
+        return Length;
     }
 
-    public Set<TypePoste> getTypesInterdits() {
+    public Set<Shift> getTypesInterdits() {
         return typesInterdits;
     }
 

@@ -1,84 +1,82 @@
 import java.util.Set;
 
 public class Employee {
-    private int id;
+    private char employeeID;
+    private int[] joursDeReposIndexes; //l’ensemble des jours où l’employé e ne travaille pas
+    private int MinTotalMinutes;//le temps total minimum de travail à faire par e
+    private int MaxTotalMinutes;//le temps total maximum de travail à faire par e
+    private int MinConsecutiveShifts;//le nombre minimum de postes de travail consécutifs que l’employé e doit travailler
+    private int MaxConsecutiveShifts;// le nombre maximum de postes de travail consécutifs que l’employé e doit travailler
+    private int MinConsecutiveDaysOff;//le nombre minimum de jour de repos consécutifs à affecter à l’employé e
+    private int MaxWeekends; //le nombre maximum de week-ends que peut travailler l’employé e
+    private int MaxShifts;// le nombre maximum de jours où e travaille sur le poste de type p (p ∈ P).
+    private Set<Shift> souhaitsAffectation;//souhait d’être affecté à un type de poste particulier un jour de l’horizon de planification
+    private Set<Shift> souhaitsEvitement;//souhait de ne pas être affecté à un type de poste particulier un jour de l’horizon de planification
 
-    private Set<Jour> joursDeRepos; // Re, l'ensemble des jours où l'employé ne travaille pas
-    private int tempsTotalMinimum; // tmin, le temps total minimum de travail à faire
-    private int tempsTotalMaximum; // tmax, le temps total maximum de travail à faire
-    private int nombreMinPostesConsecutifs; // cmin, le nombre minimum de postes de travail consécutifs
-    private int nombreMaxPostesConsecutifs; // cmax, le nombre maximum de postes de travail consécutifs
-    private int nombreMinJoursReposConsecutifs; // rmin, le nombre minimum de jours de repos consécutifs
-    private int nombreMaxWeekendsTravailles; // wmax, le nombre maximum de week-ends travaillés
-    private int nombreMaxJoursTravaillesSurPoste; // mmax, le nombre maximum de jours où l'employé travaille sur le poste de type p (p ∈ P)
-
-    private Set<TypePoste> souhaitsAffectation; // Ensemble des types de postes préférés
-    private Set<TypePoste> souhaitsEvitement; // Ensemble des types de postes à éviter
-
-    public Employee(int id,
-            Set<Jour> joursDeRepos,
-            int tempsTotalMinimum,
-            int tempsTotalMaximum,
-            int nombreMinPostesConsecutifs,
-            int nombreMaxPostesConsecutifs,
-            int nombreMinJoursReposConsecutifs,
-            int nombreMaxWeekendsTravailles,
-            int nombreMaxJoursTravaillesSurPoste,
-            Set<TypePoste> souhaitsAffectation,
-            Set<TypePoste> souhaitsEvitement) {
-        this.id = id;
-        this.joursDeRepos = joursDeRepos;
-        this.tempsTotalMinimum = tempsTotalMinimum;
-        this.tempsTotalMaximum = tempsTotalMaximum;
-        this.nombreMinPostesConsecutifs = nombreMinPostesConsecutifs;
-        this.nombreMaxPostesConsecutifs = nombreMaxPostesConsecutifs;
-        this.nombreMinJoursReposConsecutifs = nombreMinJoursReposConsecutifs;
-        this.nombreMaxWeekendsTravailles = nombreMaxWeekendsTravailles;
-        this.nombreMaxJoursTravaillesSurPoste = nombreMaxJoursTravaillesSurPoste;
+    public Employee(char employeeID,
+                    int[] joursDeReposIndexes,
+                    int tempsTotalMinimum,
+                    int MaxTotalMinutes,
+                    int MinConsecutiveShifts,
+                    int MaxConsecutiveShifts,
+                    int MinConsecutiveDaysOff,
+                    int MaxWeekends,
+                    int MaxShifts,
+                    Set<Shift> souhaitsAffectation,
+                    Set<Shift> souhaitsEvitement) {
+        this.employeeID = employeeID;
+        this.joursDeReposIndexes = joursDeReposIndexes;
+        this.MinTotalMinutes = tempsTotalMinimum;
+        this.MaxTotalMinutes = MaxTotalMinutes;
+        this.MinConsecutiveShifts = MinConsecutiveShifts;
+        this.MaxConsecutiveShifts = MaxConsecutiveShifts;
+        this.MinConsecutiveDaysOff = MinConsecutiveDaysOff;
+        this.MaxWeekends = MaxWeekends;
+        this.MaxShifts = MaxShifts;
         this.souhaitsAffectation = souhaitsAffectation;
         this.souhaitsEvitement = souhaitsEvitement;
     }
-    public int getId() {
-        return id;
+    public int getEmployeeID() {
+        return employeeID;
     }
 
-    public Set<Jour> getJoursDeRepos() {
-        return joursDeRepos;
+    public int[] getJoursDeReposIndexes() {
+        return joursDeReposIndexes;
     }
 
     public int getTempsTotalMinimum() {
-        return tempsTotalMinimum;
+        return MinTotalMinutes;
     }
 
-    public int getTempsTotalMaximum() {
-        return tempsTotalMaximum;
+    public int getMaxTotalMinutes() {
+        return MaxTotalMinutes;
     }
 
-    public int getNombreMinPostesConsecutifs() {
-        return nombreMinPostesConsecutifs;
+    public int getMinConsecutiveShifts() {
+        return MinConsecutiveShifts;
     }
 
-    public int getNombreMaxPostesConsecutifs() {
-        return nombreMaxPostesConsecutifs;
+    public int getMaxConsecutiveShifts() {
+        return MaxConsecutiveShifts;
     }
 
-    public int getNombreMinJoursReposConsecutifs() {
-        return nombreMinJoursReposConsecutifs;
+    public int getMinConsecutiveDaysOff() {
+        return MinConsecutiveDaysOff;
     }
 
-    public int getNombreMaxWeekendsTravailles() {
-        return nombreMaxWeekendsTravailles;
+    public int getMaxWeekends() {
+        return MaxWeekends;
     }
 
-    public int getNombreMaxJoursTravaillesSurPoste() {
-        return nombreMaxJoursTravaillesSurPoste;
+    public int getMaxShifts() {
+        return MaxShifts;
     }
 
-    public Set<TypePoste> getSouhaitsAffectation() {
+    public Set<Shift> getSouhaitsAffectation() {
         return souhaitsAffectation;
     }
 
-    public Set<TypePoste> getSouhaitsEvitement() {
+    public Set<Shift> getSouhaitsEvitement() {
         return souhaitsEvitement;
     }
 }

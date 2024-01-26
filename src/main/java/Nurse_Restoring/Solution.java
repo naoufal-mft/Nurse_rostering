@@ -1,5 +1,13 @@
-import java.util.List;
+package Nurse_Restoring;
 
+import java.util.List;
+/**
+ * La classe Nurse_Restoring.Solution représente une solution du problème de planification des infirmières.
+ * Chaque instance de cette classe contient les affectations d'employés pour différents jours,
+ * l'indication de faisabilité et le coût associé à la solution.
+ *
+ * @Auteur: MEFTAHI
+ */
 public class Solution {
     private List<EmployeeAssignment> employeeAssignments;
     private boolean isFeasible;

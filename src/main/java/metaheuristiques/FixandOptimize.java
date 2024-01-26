@@ -1,10 +1,25 @@
 package metaheuristiques;
 
+import Nurse_Restoring.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-
+/**
+ * La classe FixAndOptimize représente une partie de notre métaheuristique qui vise à améliorer une solution initiale
+ * pour le problème de planification des infirmières. Elle utilise une approche de fixation et d'optimisation
+ * pour explorer différentes solutions en décomposant le problème initial par jour.
+ *
+ * La méthode fixAndOptimize prend une solution initiale en entrée et tente de trouver une meilleure solution
+ * en résolvant des sous-problèmes pour chaque jour, en réinitialisant certaines variables et en optimisant
+ * les affectations d'employés.
+ *
+ * Cette classe utilise la classe Solution pour représenter les solutions du problème de planification des infirmières.
+ * Les fonctions solve, verifyIsFeasible et calculateSolutionCost sont utilisées pour construire, vérifier la faisabilité
+ * et calculer le coût d'une solution.
+ *
+ * @author MEFTAHI
+ */
 public class FixAndOptimize {
 
     static Solution fixAndOptimize(Solution initialSolution) {
@@ -12,7 +27,7 @@ public class FixAndOptimize {
         Solution bestSolution = initialSolution;
 
         // Décomposer le problème par jour
-        List<NurseSchedulingProblem> subProblems = decompose(new NurseSchedulingProblem());//NurseSchedulingProblem prendra en input les valeurs qu on a depuis chaque instance
+        List<NurseSchedulingProblem> subProblems = decompose(new NurseSchedulingProblem());//Nurse_Restoring.NurseSchedulingProblem prendra en input les valeurs qu on a depuis chaque instance
 
         //mise à jour des variables avec les valeurs de la solution initiale
         for (Solution.EmployeeAssignment employeeAssignment : initialSolution.getEmployeeAssignments()) {
@@ -99,7 +114,7 @@ public class FixAndOptimize {
         // Calculer le coût de la solution
         int cost = calculateSolutionCost(problem, solution.getEmployeeAssignments());
 
-        // Créer une nouvelle instance de Solution avec les paramètres mis à jour
+        // Créer une nouvelle instance de Nurse_Restoring.Solution avec les paramètres mis à jour
         solution = new Solution(solution.getEmployeeAssignments(), isFeasible, cost);
 
 

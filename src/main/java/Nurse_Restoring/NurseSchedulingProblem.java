@@ -1,6 +1,14 @@
+package Nurse_Restoring;
+
 import java.util.HashSet;
 import java.util.Set;
-
+/**
+ * Classe représentant le problème de planification des infirmières.
+ * Cette classe définit les variables de décision, les contraintes et la fonction objectif
+ * pour résoudre le problème de manière optimale.
+ *
+ * @Auteur: MEFTAHI
+ */
 public class NurseSchedulingProblem{
     private int horizon; //le nombre de jours de l’horizon de planification
     private Set<Shift> shifts;//l’ensemble des types de postes
@@ -361,7 +369,7 @@ public class NurseSchedulingProblem{
         for (int j = 0; j < DayIndexes.length; j++) {
             for (Shift shift : shifts) {
                 int p = shift.getId();
-                int personnelRequis = shift.getPersonnelRequis();  // Utilisez la méthode de la classe Shift pour obtenir le nombre de personnel requis
+                int personnelRequis = shift.getPersonnelRequis();  // Utilisez la méthode de la classe Nurse_Restoring.Shift pour obtenir le nombre de personnel requis
 
                 int totalEmployesAffectes = 0;
 

@@ -1,5 +1,14 @@
-import java.util.Set;
+package Nurse_Restoring;
 
+import java.util.Set;
+/**
+ * La classe Nurse_Restoring.Employee représente un employé dans le problème de planification des infirmières.
+ * Chaque instance de cette classe contient les caractéristiques spécifiques de l'employé telles que
+ * les jours de repos, le temps de travail minimum et maximum, le nombre de postes consécutifs,
+ * le nombre de jours de repos consécutifs, le nombre maximal de week-ends travaillés, etc.
+ *
+ * @Auteur: MEFTAHI
+ */
 public class Employee {
     private char employeeID;
     private int[] joursDeReposIndexes; //l’ensemble des jours où l’employé e ne travaille pas

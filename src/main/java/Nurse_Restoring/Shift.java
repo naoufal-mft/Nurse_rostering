@@ -5,7 +5,8 @@ import java.util.Set;
  * La classe Post représente un type de poste dans le problème de planification des infirmières.
  * Chaque type de poste a une durée, des types de postes incompatibles immédiatement après,
  * et le nombre de personnels requis pour ce type de poste le jour j(dayIndexe).
- *  @Auteur: MEFTAHI
+ *
+ *  @author MEFTAHI
  */
 
 public class Shift {

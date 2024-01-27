@@ -7,7 +7,7 @@ import java.util.Set;
  * les jours de repos, le temps de travail minimum et maximum, le nombre de postes consécutifs,
  * le nombre de jours de repos consécutifs, le nombre maximal de week-ends travaillés, etc.
  *
- * @Auteur: MEFTAHI
+ * @author: MEFTAHI
  */
 public class Employee {
     private char employeeID;
@@ -53,7 +53,7 @@ public class Employee {
         return joursDeReposIndexes;
     }
 
-    public int getTempsTotalMinimum() {
+    public int getMinTotalMinutes() {
         return MinTotalMinutes;
     }
 

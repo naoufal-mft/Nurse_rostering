@@ -1,10 +1,29 @@
 package metaheuristiques;
 
+import Nurse_Restoring.*;
+import Optimisation.verify;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * La classe FixandRelax implémente l'algorithme Fix-and-Relax pour résoudre un problème de planification des infirmières.
+ * Cet algorithme décompose le problème en sous-problèmes par semaine, résout chaque sous-problème de manière indépendante
+ * en utilisant une méthode de construction de solution faisable, et combine les solutions partielles pour obtenir une
+ * solution complète et réalisable.
+ *
+ * La méthode fixAndRelax prend en entrée le problème global, représenté par la classe NurseSchedulingProblem, et une liste
+ * d'indices de semaine pour la décomposition. Elle retourne une solution faisable ou null si aucune solution réalisable
+ * n'est trouvée.
+ *
+ * Les méthodes auxiliaires clear et decompose sont utilisées pour réinitialiser les variables de solution et pour diviser
+ * le problème global en sous-problèmes par semaine, respectivement.
+ *
+ *
+ * @author TANANI et AIT KARROUM
+ */
 public class FixandRelax {
 
     // Méthode principale de l'algorithme Fix-and-Relax
@@ -98,8 +117,8 @@ public class FixandRelax {
     private static boolean verifyIsFeasible(NurseSchedulingProblem problem, List<Solution.EmployeeAssignment> solutionAssignments) {
         // Vérifier toutes les contraintes pour déterminer la faisabilité de la solution
         try {
-            // Supposons que verify.checkAllConstraints soit une méthode dans votre code
-            verify.checkAllConstraints(problem, solutionAssignments);
+            // Supposons que Optimisation.verify.checkAllConstraints soit une méthode dans votre code
+            verify.verifierToutesLesContraintes(problem, solutionAssignments);
             return true;  // Aucune exception n'a été levée, la solution est faisable
         } catch (Exception e) {
             return false;  // Une exception a été levée, la solution n'est pas faisable

@@ -6,7 +6,7 @@ import java.util.List;
  * Chaque instance de cette classe contient les affectations d'employés pour différents jours,
  * l'indication de faisabilité et le coût associé à la solution.
  *
- * @Auteur: MEFTAHI
+ * @author MEFTAHI
  */
 public class Solution {
     private List<EmployeeAssignment> employeeAssignments;

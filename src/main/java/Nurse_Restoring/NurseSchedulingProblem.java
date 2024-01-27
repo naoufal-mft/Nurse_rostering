@@ -7,7 +7,7 @@ import java.util.Set;
  * Cette classe définit les variables de décision, les contraintes et la fonction objectif
  * pour résoudre le problème de manière optimale.
  *
- * @Auteur: MEFTAHI
+ * @author MEFTAHI
  */
 public class NurseSchedulingProblem{
     private int horizon; //le nombre de jours de l’horizon de planification
@@ -182,7 +182,7 @@ public class NurseSchedulingProblem{
     }
     public void contrainte4() {
         for (Employee employee : employees) {
-            int tmin = employee.getTempsTotalMinimum();
+            int tmin = employee.getMinTotalMinutes();
             int tmax = employee.getMaxTotalMinutes();
             int totalWorkTime = 0;
             for (int j = 0; j < horizon; j++) {

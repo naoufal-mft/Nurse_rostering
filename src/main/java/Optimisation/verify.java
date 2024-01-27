@@ -250,12 +250,12 @@ public class verify {
             int[] joursDeReposIndexes = employee.getJoursDeReposIndexes();
     
             for (int dayIndex : joursDeReposIndexes) {
-                for (Post post : nurseProblem.getPosts()) {
-                    int p = post.getId();
-                    // Contrainte : L'employé ne travaille pas les jours spécifiés
+                for (Shift shift : nurseProblem.getShifts()) {
+                    int p = shift.getId();
+                    // Contrainte : L'employé ne travaille pas certains jours
                     if (solution[employee.getId()][dayIndex][p]) {
                         System.out.println("Contrainte 9 violée : L'employé " + employee.getId() +
-                                " est affecté à travailler le jour spécifié pour le poste " + post.getId());
+                                " est affecté à travailler le jour spécifié pour le poste " + shift.getId());
                     }
                 }
             }
@@ -263,12 +263,14 @@ public class verify {
     }
 
 
+
     // Contrainte 10: Nombre d'employés requis pour chaque poste sur chaque jour
     private static void verifierContrainte10(NurseSchedulingProblem nurseProblem, List<EmployeeAssignment> solution) {
         for (int j = 0; j < nurseProblem.getNbDays(); j++) {
-            for (Post post : nurseProblem.getPosts()) {
-                int p = post.getId();
-                int personnelRequis = post.getPersonnelRequis();
+            for (Shift shift : nurseProblem.getShifts()) {
+                int p = shift.getId();
+                int personnelRequis = shift.getPersonnelRequis();
+    
                 int totalEmployesAffectes = 0;
     
                 for (Employee employee : nurseProblem.getEmployees()) {
@@ -277,18 +279,19 @@ public class verify {
                     }
                 }
     
-                int sousEffectif = nurseProblem.getSousEffectif()[j][p];
-                int surEffectif = nurseProblem.getSurEffectif()[j][p];
+                int sousEffectif = nurseProblem.getUnderstaffing()[j][p];
+                int surEffectif = nurseProblem.getOverstaffing()[j][p];
     
                 // Vérifier si la contrainte est violée
                 if (totalEmployesAffectes < sousEffectif || totalEmployesAffectes > personnelRequis + surEffectif) {
-                    System.out.println("Contrainte 10 violée : Jour " + j + ", Poste " + post.getId() +
+                    System.out.println("Contrainte 10 violée : Jour " + j + ", Poste " + shift.getId() +
                             ": Affectations=" + totalEmployesAffectes + ", Sous-effectif=" + sousEffectif +
                             ", Sur-effectif=" + surEffectif + ", Personnel Requis=" + personnelRequis);
                 }
             }
         }
     }
+
 
 }
 
